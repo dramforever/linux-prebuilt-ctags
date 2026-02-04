@@ -50,6 +50,7 @@ jobs:
           echo ' --excmd=combine' > .ctags.d/opts.ctags # Arrgh dashes
           make tags
           mv tags "ctags-${{ steps.get-tag.outputs.tag }}"
+          zstd -7 ctags-*
           mkdir already-done
 
       - name: Release
@@ -58,7 +59,7 @@ jobs:
           GH_TOKEN: ${{ github.token }}
         run: |
           set -x -e -u -o pipefail
-          gh release create ctags-* -R "${{ github.repository }}" ctags-*
+          gh release create ctags-* -R "${{ github.repository }}" ctags-*.zst
 
       - name: Mark in cache
         if: steps.check-cache.outputs.cache-hit != 'true'
