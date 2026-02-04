@@ -1,0 +1,57 @@
+name: Update ctags
+
+on:
+  workflow_dispatch:
+  schedule:
+    - cron: '0 0 * * *' # Midnight every day
+
+jobs:
+  update:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Check latest tag
+        id: get-tag
+        run: |
+          gh api 'repos/torvalds/linux/tags?per_page=1' | jq -r '"tag=\(.[0].name)"' >> "$GITHUB_OUTPUT"
+
+      - name: Check cache
+        id: check-cache
+        uses: actions/cache/restore@cdf6c1fa76f9f475f3d7449005a359c84ca0f306 # v5.0.3
+        with:
+          path: already-done
+          key: v1-${{ steps.get-tag.outputs.tag  }}
+
+      - name: Checkout
+        id: checkout
+        if: steps.check-cache.outputs.cache-hit != 'true'
+        uses: actions/checkout@8e8c483db84b4bee98b60c0593521ed34d9990e8 # v6.0.1
+        with:
+          repository: torvalds/linux
+          ref: refs/tags/${{ steps.get-tag.outputs.tag }}
+
+      - name: Install universal-ctags
+        if: steps.check-cache.outputs.cache-hit != 'true'
+        run: |
+          sudo apt install universal-ctags
+
+      - name: Generate tags
+        if: steps.check-cache.outputs.cache-hit != 'true'
+        run: |
+          mkdir -p .ctags.d
+          echo ' --excmd=combine' > .ctags.d/opts.ctags # Arrgh dashes
+          make tags
+          mv tags "ctags-${{ steps.get-tag.outputs.tag }}"
+          mkdir already-done
+
+      - name: Release
+        if: steps.check-cache.outputs.cache-hit != 'true'
+        run: |
+          gh release create ctags-* -R "${{ github.repository }}" ctags-*
+
+      - name: Mark in cache
+        if: steps.check-cache.outputs.cache-hit != 'true'
+        uses: actions/cache/save@cdf6c1fa76f9f475f3d7449005a359c84ca0f306 # v5.0.3
+        with:
+          path: already-done
+          key: ${{ steps.check-cache.outputs.cache-primary-key }}
