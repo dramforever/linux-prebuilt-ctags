@@ -1,3 +1,7 @@
+# SPDX-License-Identifier: 0BSD
+
+# The 0BSD license does not apply to the generated files. See README.md.
+
 name: Update ctags
 
 on:
