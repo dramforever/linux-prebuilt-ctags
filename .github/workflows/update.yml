@@ -13,6 +13,7 @@ jobs:
       - name: Check latest tag
         id: get-tag
         run: |
+          set -e -u -o pipefail
           gh api 'repos/torvalds/linux/tags?per_page=1' | jq -r '"tag=\(.[0].name)"' >> "$GITHUB_OUTPUT"
 
       - name: Check cache
@@ -33,11 +34,13 @@ jobs:
       - name: Install universal-ctags
         if: steps.check-cache.outputs.cache-hit != 'true'
         run: |
+          set -e -u -o pipefail
           sudo apt install universal-ctags
 
       - name: Generate tags
         if: steps.check-cache.outputs.cache-hit != 'true'
         run: |
+          set -e -u -o pipefail
           mkdir -p .ctags.d
           echo ' --excmd=combine' > .ctags.d/opts.ctags # Arrgh dashes
           make tags
@@ -47,6 +50,7 @@ jobs:
       - name: Release
         if: steps.check-cache.outputs.cache-hit != 'true'
         run: |
+          set -e -u -o pipefail
           gh release create ctags-* -R "${{ github.repository }}" ctags-*
 
       - name: Mark in cache
