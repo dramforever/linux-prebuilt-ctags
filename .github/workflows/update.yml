@@ -3,7 +3,7 @@ name: Update ctags
 on:
   workflow_dispatch:
   schedule:
-    - cron: '0 0 * * *' # Midnight every day
+    - cron: '0 0/4 * * *' # Every four hours
 
 jobs:
   update:
