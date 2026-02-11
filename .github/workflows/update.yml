@@ -52,7 +52,7 @@ jobs:
           set -x -e -u -o pipefail
           mkdir -p .ctags.d
           echo ' --excmd=combine' > .ctags.d/opts.ctags # Arrgh dashes
-          make tags
+          ALLSOURCE_ARCHS=all make tags
           mv tags "ctags-${{ steps.get-tag.outputs.tag }}"
           zstd -7 "ctags-${{ steps.get-tag.outputs.tag }}"
           mkdir already-done
